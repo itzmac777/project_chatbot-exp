@@ -4,7 +4,7 @@ Claude-4, GPT-5, Gemini etc. but without session limit. As i was using free vers
 purpose. I would mostly hit their session limit which means another CD of 2-3 hours. 
 
 ## Why it's abondonded
-I worked it for like a day and while experimenting with session and history persistant i hit the wall of rate limit again. 
+I worked it for like a day and while experimenting with session and history persistance i hit the wall of rate limit again. 
 So if the api has rate limit per user, i have no reason to reinvent the wheel again. This deminishes my whole core idea.
 I tried to bypass this issue using multiple token simultaniously(which i kept exposed on client side) to access the api (got success), but this seemed unethical.
 
