@@ -1,0 +1,110 @@
+<div id="chat-container" class="w-100 d-flex flex-column overflow-auto h-50 mb-5 pb-5">
+    
+</div>
+
+<div class="container position-fixed bottom-0 mb-3">
+    <div class="container d-flex align-items-center justify-content-center">
+        <input class="form-control" id="user-prompt" type="text" placeholder="Enter Your Prompt">
+        <button id="submit-btn" class="btn btn-secondary">Submit</button>
+    </div>
+
+    <div class="d-flex align-self-center flex-column container mt-3">
+        <div class="form-check form-switch">
+            <input class="form-check-input" value="claude" name="modelSelector" type="radio" role="switch" id="claude" checked>
+            <label class="form-check-label" for="claude">Texting (Claude - Sonnet 4)</label>
+        </div>
+        <div class="form-check form-switch">
+            <input class="form-check-input" value="image-gen" name="modelSelector" type="radio" role="switch" id="image-gen">
+            <label class="form-check-label" for="image-gen">Image Generation</label>
+        </div>
+    </div>
+</div>
+
+<script>
+    const modelSelectorInputs = document.querySelectorAll('.form-check-input');
+    const userPromptInput = document.getElementById('user-prompt');
+    const submitBtn = document.getElementById("submit-btn");
+    const chatContainer = document.getElementById('chat-container')
+
+    let currentModel = 'claude'
+    modelSelectorInputs.forEach(modelSelector=> modelSelector.addEventListener('change', e=> {
+        if(currentModel == e.target.value) return;
+        currentModel = e.target.value;;
+    }));
+
+    let conversationHistory = [];
+    let authTokenArr = ['eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0IjoiYXUiLCJ2IjoiMC4wLjAiLCJ1dSI6Ik9uYzdPYm9MVEFPNi9LRHU2aThnK1E9PSIsImF1IjoiSWFrS3pzZ29WZ0dENzQrM0Q4bVlYZz09IiwicyI6IkxFT0FBaDBEK1ZVS0hadktnUnNRK1E9PSIsImlhdCI6MTc2MjE0NTA1OH0.f5ZM0L6I2aNRwdS1nAFNFKDjzLhGxPYOMEwaFbplQcQ',
+                        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0IjoiYXUiLCJ2IjoiMC4wLjAiLCJ1dSI6IkdNSFZoMXdBUnZ1dTJtMkc1Nkc4SGc9PSIsImF1IjoiSWFrS3pzZ29WZ0dENzQrM0Q4bVlYZz09IiwicyI6InA4alBVNS9sRUM4UGlNODJQOGp3RGc9PSIsImlhdCI6MTc2MjE0NDk0NX0.ZLWOW_YZSEH45cwzJdVbxU9OMOAjxn3-CR8xbwz3qNk',
+                        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0IjoiYXUiLCJ2IjoiMC4wLjAiLCJ1dSI6InUwUTJzR2x2UUhlNjAwUEJnZFNjakE9PSIsImF1IjoiSWFrS3pzZ29WZ0dENzQrM0Q4bVlYZz09IiwicyI6Im9YRlVkVUJRMUk3N01CRklUQ0lQTlE9PSIsImlhdCI6MTc2MjE0NDY2M30.vIq12NcovVJtevW-1YSgRHLT8eBqhxldZhRClxPP1xo', 
+                        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0IjoiYXUiLCJ2IjoiMC4wLjAiLCJ1dSI6IjNLWm5GU25OUXN5L1BPVlVEanZNTXc9PSIsImF1IjoiSWFrS3pzZ29WZ0dENzQrM0Q4bVlYZz09IiwicyI6InNpSVE3bWJrZXhnblRXcmdkNEg4Nnc9PSIsImlhdCI6MTc2MjA5MTg0M30.jKel3Vo28m2vPt-eRbuCtI2KIRCC3YOGmb4IeloSSPs',
+                        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0IjoiYXUiLCJ2IjoiMC4wLjAiLCJ1dSI6ImhEZjFLYzA3U2grT2duTHA0ZWFQZ2c9PSIsImF1IjoiSWFrS3pzZ29WZ0dENzQrM0Q4bVlYZz09IiwicyI6IlYwOGhWajdPd3ZFNmtQaUZEeEYwT3c9PSIsImlhdCI6MTc2MjE0ODEyMX0.wkkppFshlb_0qc4D1Th0yn6wyLBcaOwkID2Uq8ERui0']
+    localStorage.setItem('puter.app.id', `app-2${Math.round(Math.random() * 10)}a9ace-c829-560${Math.round(Math.random() * 10)}-83ef-8fb${Math.round(Math.random() * 10)}0fc9985e`)
+    let currentAuthToken = Number(localStorage.getItem('current-auth-token')) || 0;
+
+    localStorage.setItem('puter.auth.token', authTokenArr[currentAuthToken])
+
+    submitBtn.addEventListener('click', e=> {
+        if(userPromptInput.value.trim() == ''){
+            return alert('Prompt cannot be empty')
+        }
+        if(currentModel == 'claude') {
+            handleClaudeRequest();
+        } else{
+            handleImageGenRequest()
+        }
+    })
+
+    async function handleClaudeRequest(){
+        try{
+            chatContainer.innerHTML = chatContainer.innerHTML + `
+            <div class="d-flex align-items-center mb-3">
+                <div class="rounded-circle bg-custom-primary p-2 d-flex align-self-start align-items-center">
+                    <img src="/img/default-user.png" width="20" alt="">
+                </div>
+                <div class="container d-flex">${userPromptInput.value}</div>
+            </div>`;
+        const claudeResponseId = Math.random();
+        chatContainer.innerHTML = chatContainer.innerHTML + `
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle my-2 mx-1 d-flex align-self-start align-items-center">
+                        <img src="/img/claude-ai-icon.png" width="25" alt="">
+                    </div>
+                    <div id='${claudeResponseId}' class="container d-flex"></div>
+                </div>`;
+        const claudeResponseContainer = document.getElementById(`${claudeResponseId}`);
+        
+        //Saving client Conversation History
+        conversationHistory.push({role: 'user', content: userPromptInput.value})
+        const prompt = conversationHistory.map(m=> `${m.role === 'user' ? 'User' : 'Claude'}: ${m.content}`).join('\n') + '\nClaude:'
+        const chat_resp = await puter.ai.chat(prompt, {model: 'gpt-5-nano', stream: true });
+        for await ( const part of chat_resp ){
+            claudeResponseContainer.innerHTML = claudeResponseContainer.innerHTML + part?.text?.replaceAll('\n', '<br>');
+        };
+
+        //Saving claude response history
+        conversationHistory.push({ role: 'claude', content: claudeResponseContainer.innerText });
+        console.log(prompt.length)
+        userPromptInput.value = ''
+        }
+        catch(err){
+                currentAuthToken = swapToken();
+                localStorage.setItem('current-auth-token', currentAuthToken);
+                localStorage.setItem('puter.app.id', `app-2${Math.round(Math.random() * 10)}a9ace-c829-560${Math.round(Math.random() * 10)}-83ef-8fb${Math.round(Math.random() * 10)}0fc9985e`)
+                localStorage.setItem('puter.auth.token', authTokenArr[currentAuthToken]);
+                // window.location.reload()
+                console.log(err)
+        }
+    }
+
+    async function handleImageGenRequest(){
+       await puter.auth.signIn();
+       const user = await puter.auth.getUser()
+       console.log(user)
+    }
+
+    function swapToken() {
+        const randomIndex = Math.round(Math.random() * 3)
+        if( randomIndex != currentAuthToken) return randomIndex;
+        swapToken()   
+    }
+</script>
